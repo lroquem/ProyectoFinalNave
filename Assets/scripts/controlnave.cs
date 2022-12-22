@@ -8,6 +8,13 @@ public class controlnave : MonoBehaviour
     // Start is called before the first frame update
     float velocity_x = 0F;
     float velocity_y = 0.70F;
+    const float CTETRUEPCT = 15000F;
+    const float CTEOIL = 5000F;
+    public const int CTELIFE = 5;
+    float truepercent = CTETRUEPCT;
+    float addoil = CTEOIL;
+    bool flag=false;
+    public static int life = CTELIFE;
     Rigidbody rigidbody;
     Transform transform;
     AudioSource audiosource;
@@ -23,9 +30,11 @@ public class controlnave : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //print("hola");
-        //Debug.Log(Time.deltaTime + " seg. " + (1.0f / Time.deltaTime) + " FPS");
-
+        
+        if (truepercent>=0)
+            print("Combustible : "+ (int)(truepercent/(CTETRUEPCT/100)) + " Vidas : "+life);
+        else
+            print("Combustible : "+ 0 + " Vidas : "+life);
         ProcesarInput();
     }
 
@@ -49,14 +58,22 @@ public class controlnave : MonoBehaviour
                         SceneManager.LoadScene("nivel 5");
                         break;
                         case "nivel 5":
-                        SceneManager.LoadScene("nivel 1");
+                        SceneManager.LoadScene("menu");
                         break;
                     }
                 }
                 break;
             case "Colision peligrosa":
                 {
+                if (flag == false)
+                    life = life -1;
+                flag = true;
                 sm_Scene = SceneManager.GetActiveScene();
+                if (life <= 0){
+                    SceneManager.LoadScene("menu");
+                    break;
+                }
+                
                     switch(sm_Scene.name){
                         case "nivel 1":
                         SceneManager.LoadScene("nivel 1");
@@ -77,7 +94,27 @@ public class controlnave : MonoBehaviour
                 }
                 break;
             case "Recarga":
-                print("Recarga Realizada...");
+                {
+                    if (flag == false)
+                        truepercent=truepercent+addoil;
+                    flag = true;
+                    Destroy(collision.gameObject);
+                }
+                break;
+            case "Colision despegue":
+                {
+                if (truepercent<=0){
+                    if (flag == false)
+                        life = life -1;
+                    flag = true;
+                    sm_Scene = SceneManager.GetActiveScene();
+                    if (life <= 0){
+                        SceneManager.LoadScene("menu");
+                        break;
+                        }
+                    SceneManager.LoadScene(sm_Scene.name);
+                    }
+                }
                 break;
         }
     }
@@ -93,16 +130,22 @@ public class controlnave : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
+            truepercent=truepercent - 20F;
+            flag=false;
             rigidbody.freezeRotation = true;
             //print("propulsor....");
-            if (Input.GetKey(KeyCode.D))
+            if (Input.GetKey(KeyCode.D) && (truepercent>0))
                 velocity_x=velocity_x+0.02F;
-            if (Input.GetKey(KeyCode.A))
+            if (Input.GetKey(KeyCode.A) && (truepercent>0))
                 velocity_x=velocity_x-0.02F;
             if (!Input.GetKey(KeyCode.A) && !Input.GetKey(KeyCode.D))
                 velocity_x=0F;
-            rigidbody.AddRelativeForce(velocity_x,velocity_y,0);
-            if (!audiosource.isPlaying)
+            if (truepercent>0){
+                rigidbody.AddRelativeForce(velocity_x,velocity_y,0);
+                }
+            else
+                audiosource.Stop();
+            if (!audiosource.isPlaying && truepercent>0)
             {
                 audiosource.Play();
             }

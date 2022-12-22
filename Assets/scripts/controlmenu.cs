@@ -5,7 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class controlmenu : MonoBehaviour
 {
-    void Start(){}
+    void Start(){
+    controlnave.life=controlnave.CTELIFE;
+    }
     void Update(){}
 
     public void empezar(){
